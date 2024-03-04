@@ -62,7 +62,8 @@ defmodule TimeLab do
         ) :: non_neg_integer()
   def update_lamport_clock(current, received) do
     # TODO: Compute updated value of the lamport clock.
-    raise "Not yet implemented"
+    max(current, received) + 1
+
   end
 
   @doc """
@@ -75,7 +76,7 @@ defmodule TimeLab do
   @spec update_lamport_clock(non_neg_integer()) :: non_neg_integer()
   def update_lamport_clock(current) do
     # TODO: Compute updated value of lamport clock.
-    raise "Not yet implemented"
+    current + 1
   end
 
   @spec lamport_ping_server(non_neg_integer()) :: no_return()
@@ -173,7 +174,7 @@ defmodule TimeLab do
   defp combine_component(current, received) do
     # TODO Current and received are corresponding components of
     # two vector clocks that need to be combined.
-    raise "Not yet implemented"
+   max(current, received)
   end
 
   @doc """
@@ -200,7 +201,7 @@ defmodule TimeLab do
     # TODO: Update the vector clock. You might find
     # `Map.update!` (https://hexdocs.pm/elixir/Map.html#update!/3)
     # useful.
-    raise "Not yet implemented"
+    Map.update(clock, proc, 1, fn existing -> existing + 1 end)
   end
 
   @before :before
@@ -229,7 +230,11 @@ defmodule TimeLab do
         ) :: :before | :after | :concurrent
   defp compare_component(c1, c2) do
     # TODO: Compare c1 and c2.
-    raise "Not yet implemented"
+    cond do
+    c1 == c2 -> @concurrent
+    c1 < c2 -> @before
+    c1 > c2 -> @hafter
+    end
   end
 
   @doc """
@@ -252,6 +257,13 @@ defmodule TimeLab do
         Map.merge(v1, v2, fn _k, c1, c2 -> compare_component(c1, c2) end)
       )
 
+    cond do
+      Enum.all?(compare_result, fn x -> x == @hafter end) -> @hafter
+      Enum.all?(compare_result, fn x -> x == @before end) -> @before
+      Enum.any?(compare_result, fn x -> x == @concurrent end) -> @concurrent
+      true -> @concurrent
+    end
+
     # TODO: You should use the `compare_result` vector
     # to compute a single return value of @before, @hafter
     # or @concurrent here. You might find `Enum.all?`
@@ -266,8 +278,6 @@ defmodule TimeLab do
     #  `Enum.any?(compare_result, fn x -> x == @concurrent end)`
     # will return true iff at least one element in
     # `compare_result` is @concurrent.
-
-    raise "Not yet implemented"
   end
 
   @doc """
